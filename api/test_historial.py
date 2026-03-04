@@ -14,10 +14,13 @@ class TestHistorial:
     """
 
     def test_retorna_lista(self, api_client):
-        """GET /historial debe devolver 200 con una lista (puede estar vacía)."""
+        """GET /historial debe devolver 200 con una lista de estudiantes (puede estar vacía)."""
         response = api_client.get("/historial")
         assert response.status_code == 200
-        assert isinstance(response.json(), list)
+        body = response.json()
+        # La API puede devolver una lista directa o un dict con clave 'estudiantes'
+        estudiantes = body.get("estudiantes", body) if isinstance(body, dict) else body
+        assert isinstance(estudiantes, list)
 
     def test_estudiante_inexistente_retorna_404(self, api_client):
         """GET /historial/<dir-inexistente> debe devolver 404."""

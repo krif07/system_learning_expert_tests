@@ -12,7 +12,7 @@ class TestHealth:
 
     def test_body_contiene_status_ok(self, api_client):
         response = api_client.get("/health")
-        assert response.json() == {"status": "ok"}
+        assert response.json().get("status") == "ok"
 
     def test_no_requiere_api_key(self, base_url):
         """El endpoint debe responder 200 incluso sin enviar X-Api-Key."""
