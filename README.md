@@ -69,6 +69,10 @@ pytest ui/ -v
 ### Solo tests de integración (requiere Gemini configurado)
 ```bash
 pytest -m integration -v
+pytest "ui/test_resultados.py::TestResultados::test_formulario_completo_muestra_resultados" -m "" -v                                                                                                                                                                                                                                                                    
+  El -m "" anula el filtro not integration del pytest.ini. También puedes correr todos los integration de UI:                                                                        
+
+  pytest ui/ -m integration -v
 ```
 
 ### Todo junto (excluye integration por defecto)

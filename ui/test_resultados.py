@@ -36,18 +36,18 @@ class TestResultados:
         Al completar los tres campos obligatorios y hacer clic en Analizar,
         debe aparecer el badge de puntuación con un valor no vacío.
         """
-        authenticated_page.fill("#historial", sample_data["historial"])
-        authenticated_page.fill("#examen", sample_data["examen"])
-        authenticated_page.fill("#conocimiento", sample_data["conocimiento"])
+        authenticated_page.fill("#f-historial", sample_data["historial"])
+        authenticated_page.fill("#f-examen", sample_data["examen"])
+        authenticated_page.fill("#f-conocimiento", sample_data["conocimiento"])
 
         with authenticated_page.expect_response("**/analizar") as resp_info:
-            authenticated_page.click("button:has-text('Analizar'), #btn-analizar")
+            authenticated_page.click("#btn-analizar")
 
         resp = resp_info.value
         assert resp.status in (200, 429)
 
         if resp.status == 200:
-            score = authenticated_page.locator(".score-badge .num, .score-badge")
+            score = authenticated_page.locator(".score-badge .num")
             score.wait_for(state="visible", timeout=15000)
             assert score.inner_text().strip() != ""
 
@@ -57,26 +57,23 @@ class TestResultados:
         Tras el análisis, el contenedor de resultados debe estar dentro del
         viewport (la página hace scroll automático hasta los resultados).
         """
-        authenticated_page.fill("#historial", sample_data["historial"])
-        authenticated_page.fill("#examen", sample_data["examen"])
-        authenticated_page.fill("#conocimiento", sample_data["conocimiento"])
+        authenticated_page.fill("#f-historial", sample_data["historial"])
+        authenticated_page.fill("#f-examen", sample_data["examen"])
+        authenticated_page.fill("#f-conocimiento", sample_data["conocimiento"])
 
         with authenticated_page.expect_response("**/analizar"):
-            authenticated_page.click("button:has-text('Analizar'), #btn-analizar")
+            authenticated_page.click("#btn-analizar")
 
-        results_root = authenticated_page.locator(
-            "#results-root, .results-root, #resultados"
-        ).first
+        results_root = authenticated_page.locator("#results-root")
         results_root.wait_for(state="visible", timeout=15000)
 
         rect = authenticated_page.evaluate(
-            """(selector) => {
-                const el = document.querySelector(selector);
+            """() => {
+                const el = document.querySelector('#results-root');
                 if (!el) return null;
                 const r = el.getBoundingClientRect();
                 return { top: r.top, bottom: r.bottom, vh: window.innerHeight };
-            }""",
-            "#results-root, .results-root",
+            }"""
         )
         if rect:
             assert rect["bottom"] > 0 and rect["top"] < rect["vh"]
@@ -90,15 +87,11 @@ class TestResultados:
         # No configurar ninguna key — dejar el campo vacío
 
         # Intentar llenar y enviar el formulario
-        historial_input = page.locator("#historial")
-        if not historial_input.is_visible():
-            pytest.skip("No se encontró el campo #historial")
+        page.fill("#f-historial", "Test historial")
+        page.fill("#f-examen", "Test examen")
+        page.fill("#f-conocimiento", "Test conocimiento")
 
-        page.fill("#historial", "Test historial")
-        page.fill("#examen", "Test examen")
-        page.fill("#conocimiento", "Test conocimiento")
-
-        page.click("button:has-text('Analizar'), #btn-analizar")
+        page.click("#btn-analizar")
 
         # Verificar mensaje de error de autenticación
         error = page.locator(".api-error, .error-message, [class*='error']").first

@@ -3,7 +3,8 @@
     "allow": [
       "Bash(uv venv:*)",
       "Bash(uv pip:*)",
-      "Bash(.venv/Scripts/playwright install:*)"
+      "Bash(.venv/Scripts/playwright install:*)",
+      "Bash(source:*)"
     ]
   }
 }

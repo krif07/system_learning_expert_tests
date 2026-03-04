@@ -24,8 +24,9 @@ class TestNavegacion:
         authenticated_page.goto(f"{base_url}/resultados.html")
         authenticated_page.wait_for_load_state("networkidle")
 
-        # Buscar link de navegación que apunte a la ruta
-        link = authenticated_page.locator(f"nav a[href*='{ruta}'], a[href='{ruta}']").first
+        # Los hrefs de la app son relativos sin "/" inicial (e.g. "historial.html")
+        nombre = ruta.lstrip("/")
+        link = authenticated_page.locator(f"a[href='{nombre}']").first
 
         if not link.is_visible():
             pytest.skip(f"No se encontró link de navegación para {ruta}")
@@ -33,7 +34,7 @@ class TestNavegacion:
         link.click()
         authenticated_page.wait_for_load_state("networkidle")
 
-        assert ruta in authenticated_page.url
+        assert nombre in authenticated_page.url
 
     def test_pagina_activa_tiene_clase_active(self, authenticated_page, base_url):
         """

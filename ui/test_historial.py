@@ -21,37 +21,34 @@ class TestHistorialUI:
 
     def test_lista_estudiantes_visible_si_hay_historial(self, authenticated_page, base_url):
         """
-        Si el servidor tiene historial guardado, debe aparecer al menos un
-        elemento en la lista de estudiantes.
+        El selector #studentSelect debe estar presente. Si hay historial,
+        debe contener al menos una opción seleccionable.
         """
         authenticated_page.goto(f"{base_url}/historial.html")
         authenticated_page.wait_for_load_state("networkidle")
 
-        lista = authenticated_page.locator(
-            ".student-list, #student-list, [class*='historial']"
-        ).first
-        # La lista puede estar vacía si no hay historial — simplemente verificar que cargó
-        assert authenticated_page.locator("body").is_visible()
+        select = authenticated_page.locator("#studentSelect")
+        select.wait_for(state="visible", timeout=5000)
+        assert select.is_visible()
 
     def test_click_en_estudiante_muestra_sesiones(self, authenticated_page, base_url):
         """
-        Al hacer clic en un estudiante de la lista, deben aparecer sus sesiones.
-        Se omite si no hay estudiantes en el historial.
+        Al seleccionar un estudiante del desplegable #studentSelect, debe
+        aparecer contenido en #sessionsRoot. Se omite si no hay estudiantes.
         """
         authenticated_page.goto(f"{base_url}/historial.html")
         authenticated_page.wait_for_load_state("networkidle")
 
-        estudiante = authenticated_page.locator(
-            ".student-item, [class*='student'], li[data-dir]"
-        ).first
+        select = authenticated_page.locator("#studentSelect")
+        opciones = select.locator("option").all()
+        # Filtrar opciones reales (excluir placeholder vacío o con value="")
+        opciones_reales = [o for o in opciones if o.get_attribute("value")]
 
-        if not estudiante.is_visible():
+        if not opciones_reales:
             pytest.skip("No hay estudiantes en el historial para esta prueba")
 
-        estudiante.click()
+        select.select_option(index=1)
 
-        sesiones = authenticated_page.locator(
-            ".session-list, .sesiones, [class*='session']"
-        ).first
+        sesiones = authenticated_page.locator("#sessionsRoot")
         sesiones.wait_for(state="visible", timeout=5000)
-        assert sesiones.is_visible()
+        assert sesiones.inner_text().strip() != ""
