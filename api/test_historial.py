@@ -49,7 +49,8 @@ class TestHistorial:
         # Verificar que el estudiante aparece en la lista de historial
         resp_lista = api_client.get("/historial")
         assert resp_lista.status_code == 200
-        estudiantes = resp_lista.json()
+        body = resp_lista.json()
+        estudiantes = body.get("estudiantes", body) if isinstance(body, dict) else body
         dirs = [e["dir"] for e in estudiantes]
         assert any("INT-001" in d or "IntegracionTest" in d for d in dirs), (
             f"Estudiante no encontrado en historial. Dirs disponibles: {dirs}"
