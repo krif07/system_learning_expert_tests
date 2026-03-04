@@ -33,13 +33,14 @@ class TestResultados:
     @pytest.mark.integration
     def test_formulario_completo_muestra_resultados(self, authenticated_page, sample_data):
         """
-        Al completar los tres campos obligatorios y hacer clic en Analizar,
-        debe aparecer el badge de puntuación con un valor no vacío.
+        Al completar los tres campos y hacer clic en Analizar, el POST devuelve
+        task_id inmediatamente; el badge de puntuación aparece tras el polling.
         """
         authenticated_page.fill("#f-historial", sample_data["historial"])
         authenticated_page.fill("#f-examen", sample_data["examen"])
         authenticated_page.fill("#f-conocimiento", sample_data["conocimiento"])
 
+        # Capturar el POST inicial (devuelve {"task_id": "..."} de forma inmediata)
         with authenticated_page.expect_response("**/analizar") as resp_info:
             authenticated_page.click("#btn-analizar")
 
@@ -47,25 +48,26 @@ class TestResultados:
         assert resp.status in (200, 429)
 
         if resp.status == 200:
+            # El badge aparece tras el polling (~2 s por intento); timeout generoso
             score = authenticated_page.locator(".score-badge .num")
-            score.wait_for(state="visible", timeout=15000)
+            score.wait_for(state="visible", timeout=120_000)
             assert score.inner_text().strip() != ""
 
     @pytest.mark.integration
     def test_resultados_no_desaparecen_del_viewport(self, authenticated_page, sample_data):
         """
-        Tras el análisis, el contenedor de resultados debe estar dentro del
-        viewport (la página hace scroll automático hasta los resultados).
+        Tras el análisis (vía polling), el contenedor #results-root debe estar
+        dentro del viewport gracias al scroll automático de la página.
         """
         authenticated_page.fill("#f-historial", sample_data["historial"])
         authenticated_page.fill("#f-examen", sample_data["examen"])
         authenticated_page.fill("#f-conocimiento", sample_data["conocimiento"])
 
-        with authenticated_page.expect_response("**/analizar"):
-            authenticated_page.click("#btn-analizar")
+        authenticated_page.click("#btn-analizar")
 
+        # Esperar a que aparezcan los resultados tras el polling
         results_root = authenticated_page.locator("#results-root")
-        results_root.wait_for(state="visible", timeout=15000)
+        results_root.wait_for(state="visible", timeout=120_000)
 
         rect = authenticated_page.evaluate(
             """() => {

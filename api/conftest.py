@@ -121,6 +121,46 @@ def payload_analisis() -> dict:
 
 
 @pytest.fixture(scope="module")
+def analizar_y_esperar(api_client):
+    """
+    Retorna una función que hace POST /analizar, obtiene el task_id y hace
+    polling en GET /analizar/{task_id} hasta que el status sea 'done' o 'error'.
+    Devuelve el body final del resultado.
+    """
+    import time
+
+    def _hacer(payload: dict, poll_interval: float = 2, max_intentos: int = 60) -> dict:
+        resp_post = api_client.post("/analizar", json=payload)
+        if resp_post.status_code == 429:
+            pytest.skip("Rate limit alcanzado")
+        assert resp_post.status_code == 200, (
+            f"POST /analizar devolvió {resp_post.status_code}: {resp_post.text}"
+        )
+        task_id = resp_post.json()["task_id"]
+
+        for intento in range(max_intentos):
+            poll = api_client.get(f"/analizar/{task_id}")
+            assert poll.status_code == 200, f"GET /analizar/{task_id} devolvió {poll.status_code}"
+            data = poll.json()
+            if data["status"] == "done":
+                # La API envuelve el resultado: {"status": "done", "resultado": {...}}
+                return data.get("resultado", data)
+            if data["status"] == "error":
+                detail = str(data.get("detail", ""))
+                # Rate limit de Gemini → skip en lugar de fail
+                if "429" in detail or "RESOURCE_EXHAUSTED" in detail or "quota" in detail.lower():
+                    pytest.skip(f"Rate limit de Gemini: {detail[:120]}")
+                pytest.fail(f"La tarea {task_id} terminó en error: {data}")
+            time.sleep(poll_interval)
+
+        pytest.fail(
+            f"La tarea {task_id} no completó tras {max_intentos * poll_interval}s"
+        )
+
+    return _hacer
+
+
+@pytest.fixture(scope="module")
 def client_sin_key(base_url: str):
     """Cliente httpx sin ningún header de autenticación."""
     with httpx.Client(base_url=base_url, timeout=10) as client:
