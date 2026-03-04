@@ -1,0 +1,19 @@
+# Entorno virtual
+.venv/
+
+# Variables de entorno con valores reales
+.env
+
+# pytest
+.pytest_cache/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Playwright
+test-results/
+playwright-report/
+
+# Reportes
+report.html
+*.log
