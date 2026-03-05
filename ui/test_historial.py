@@ -5,8 +5,9 @@ import pytest
 @pytest.mark.ui
 class TestHistorialUI:
     """
-    Verifica que la página de historial carga correctamente, muestra la lista
-    de estudiantes y permite explorar las sesiones individuales.
+    Verifica que la página de historial carga correctamente, muestra el campo
+    de búsqueda con autocompletado (input + datalist) y permite explorar
+    sesiones individuales seleccionando un estudiante.
     """
 
     def test_pagina_carga_sin_errores(self, authenticated_page, base_url):
@@ -21,33 +22,42 @@ class TestHistorialUI:
 
     def test_lista_estudiantes_visible_si_hay_historial(self, authenticated_page, base_url):
         """
-        El selector #studentSelect debe estar presente. Si hay historial,
-        debe contener al menos una opción seleccionable.
+        El campo de búsqueda #studentSearch (input con datalist) debe estar
+        presente. Si hay historial, el datalist debe tener opciones cargadas.
         """
         authenticated_page.goto(f"{base_url}/historial.html")
         authenticated_page.wait_for_load_state("networkidle")
 
-        select = authenticated_page.locator("#studentSelect")
-        select.wait_for(state="visible", timeout=5000)
-        assert select.is_visible()
+        search = authenticated_page.locator("#studentSearch")
+        search.wait_for(state="visible", timeout=5000)
+        assert search.is_visible()
+
+        # Verificar que el datalist existe y está asociado
+        datalist = authenticated_page.locator("#studentOptions")
+        assert datalist.count() > 0
 
     def test_click_en_estudiante_muestra_sesiones(self, authenticated_page, base_url):
         """
-        Al seleccionar un estudiante del desplegable #studentSelect, debe
-        aparecer contenido en #sessionsRoot. Se omite si no hay estudiantes.
+        Al seleccionar un estudiante del autocompletado (#studentSearch + datalist),
+        debe aparecer contenido en #sessionsRoot. Se omite si no hay estudiantes.
         """
         authenticated_page.goto(f"{base_url}/historial.html")
         authenticated_page.wait_for_load_state("networkidle")
 
-        select = authenticated_page.locator("#studentSelect")
-        opciones = select.locator("option").all()
-        # Filtrar opciones reales (excluir placeholder vacío o con value="")
-        opciones_reales = [o for o in opciones if o.get_attribute("value")]
+        # Obtener la primera opción del datalist
+        primera_opcion = authenticated_page.evaluate(
+            "() => { const opt = document.querySelector('#studentOptions option'); "
+            "return opt ? opt.value : null; }"
+        )
 
-        if not opciones_reales:
+        if not primera_opcion:
             pytest.skip("No hay estudiantes en el historial para esta prueba")
 
-        select.select_option(index=1)
+        # Escribir el valor exacto en el input para simular la selección
+        search = authenticated_page.locator("#studentSearch")
+        search.fill(primera_opcion)
+        search.dispatch_event("input")
+        search.dispatch_event("change")
 
         sesiones = authenticated_page.locator("#sessionsRoot")
         sesiones.wait_for(state="visible", timeout=5000)
