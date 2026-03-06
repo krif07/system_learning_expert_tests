@@ -56,6 +56,11 @@ Variables disponibles:
 
 ## Comandos para correr los tests
 
+### Solo tests de UI para Resultados
+```bash
+pytest ui/test_resultados_dmre.py -m integration -v
+```
+
 ### Solo tests de API (sin llamadas a Gemini)
 ```bash
 pytest api/ -m "not integration" -v
