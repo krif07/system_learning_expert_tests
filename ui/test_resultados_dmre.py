@@ -1,9 +1,9 @@
-"""Tests de la página /resultados.html — escenario DMRE (Claudia Ríos, 6/10)."""
+"""Tests de la página /resultados.html — escenario DMRE (Cristian Lopez | documento estudiante: 123654, 6/10)."""
 import pytest
 
 
 HISTORIAL_DMRE = """\
-Estudiante: Claudia Ríos | Curso: Buenas Prácticas de Reprocesamiento DMRE | Nivel: Profesional — Auxiliar de enfermería, central de esterilización
+Estudiante: Cristian Lopez | documento estudiante: 123654 | Curso: Buenas Prácticas de Reprocesamiento DMRE | Nivel: Profesional — Auxiliar de enfermería, central de esterilización
 
 Sesiones de estudio (últimas 2 semanas):
 - 03/02: Módulo 1 — Marco Normativo (35 min) - completó lectura y cuestionario
@@ -18,7 +18,7 @@ Evaluaciones previas:
 
 EXAMEN_DMRE = """\
 Evaluación Final — Buenas Prácticas de Reprocesamiento DMRE
-Fecha: 13/02/2026 | Puntaje: 6/10 | Estudiante: Claudia Ríos
+Fecha: 13/02/2026 | Puntaje: 6/10 | Estudiante: Cristian Lopez | documento estudiante: 123654
 
 Pregunta 1 (Normativa): Cuál es el objeto de la Resolución 914 de 2025
   Respuesta: CORRECTA
@@ -117,6 +117,8 @@ class TestResultadosDMRE:
     @pytest.mark.integration
     def test_analisis_dmre_devuelve_task_id(self, authenticated_page):
         """El POST a /analizar con datos DMRE debe responder 200 y devolver task_id."""
+        authenticated_page.fill("#f-nombre", "Cristian Lopez")
+        authenticated_page.fill("#f-documento", "123654")
         authenticated_page.fill("#f-historial", HISTORIAL_DMRE)
         authenticated_page.fill("#f-examen", EXAMEN_DMRE)
         authenticated_page.fill("#f-conocimiento", CONOCIMIENTO_DMRE)
@@ -136,6 +138,8 @@ class TestResultadosDMRE:
     @pytest.mark.integration
     def test_score_badge_muestra_puntaje_tras_polling(self, authenticated_page):
         """Tras el polling, el badge de puntuación debe aparecer con un valor no vacío."""
+        authenticated_page.fill("#f-nombre", "Cristian Lopez")
+        authenticated_page.fill("#f-documento", "123654")
         authenticated_page.fill("#f-historial", HISTORIAL_DMRE)
         authenticated_page.fill("#f-examen", EXAMEN_DMRE)
         authenticated_page.fill("#f-conocimiento", CONOCIMIENTO_DMRE)
@@ -157,6 +161,8 @@ class TestResultadosDMRE:
         Tras el análisis DMRE, #results-root debe estar visible y dentro
         del viewport gracias al scroll automático de la página.
         """
+        authenticated_page.fill("#f-nombre", "Cristian Lopez")
+        authenticated_page.fill("#f-documento", "123654")
         authenticated_page.fill("#f-historial", HISTORIAL_DMRE)
         authenticated_page.fill("#f-examen", EXAMEN_DMRE)
         authenticated_page.fill("#f-conocimiento", CONOCIMIENTO_DMRE)
@@ -189,6 +195,8 @@ class TestResultadosDMRE:
         El bloque de recomendaciones debe aparecer en los resultados.
         Con 5 errores en el examen, el sistema debe generar al menos una recomendación.
         """
+        authenticated_page.fill("#f-nombre", "Cristian Lopez")
+        authenticated_page.fill("#f-documento", "123654")
         authenticated_page.fill("#f-historial", HISTORIAL_DMRE)
         authenticated_page.fill("#f-examen", EXAMEN_DMRE)
         authenticated_page.fill("#f-conocimiento", CONOCIMIENTO_DMRE)
@@ -219,6 +227,8 @@ class TestResultadosDMRE:
         Tras enviar el formulario DMRE, los campos #f-historial y #f-examen
         deben mantener su contenido o ser vaciados de forma controlada (no un estado roto).
         """
+        authenticated_page.fill("#f-nombre", "Cristian Lopez")
+        authenticated_page.fill("#f-documento", "123654")
         authenticated_page.fill("#f-historial", HISTORIAL_DMRE)
         authenticated_page.fill("#f-examen", EXAMEN_DMRE)
         authenticated_page.fill("#f-conocimiento", CONOCIMIENTO_DMRE)
